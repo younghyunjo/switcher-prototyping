@@ -1039,6 +1039,7 @@ int main(void)
 #include "io_motor.h"
 #include "io_uart.h"
 #include "io_time.h"
+#include "uart_service.h"
 #include <time.h>
 
 #define APP_TIMER_PRESCALER              0                                           /**< Value of the RTC1 PRESCALER register. */
@@ -1065,6 +1066,13 @@ static void lfclk_config(void)
     nrf_drv_clock_lfclk_request(NULL);
 }
 
+static void _print_battery_level(char *cmd)
+{
+	char bat_level[32] = {0,};
+	sprintf(bat_level, "32\r\n");
+	io_uart_print(bat_level);
+}
+
 int main(void)
 {
     lfclk_config();
@@ -1080,9 +1088,18 @@ int main(void)
 	io_button_init(17, button_released);
 	io_battery_init(6, 3410/2, 4090/2);
 
+	struct uart_service_cmd uart_service_cmds[] = {
+		{.cmd = "bat", .cb = _print_battery_level}
+	};
+	uart_service_init(uart_service_cmds, 1);
+
 	// Enter main loop.
 	for (;;)
 	{
+		//__WFE();
+		nrf_delay_ms(1000);
+		uart_service_do();
+		/*
 		int a;
 		scanf("%d\n", &a);
 		printf("%d\n", a);
@@ -1101,6 +1118,7 @@ int main(void)
 		//io_battery_level(bat_level);
 		nrf_delay_ms(1000);
 		__WFE();
+		*/
 	}
 }
 

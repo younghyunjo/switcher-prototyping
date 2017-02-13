@@ -1,16 +1,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "io_uart.h"
+#include "uart_queue.h"
 #include "app_uart.h"
 #include "app_error.h"
 #include "nrf_delay.h"
 #include "nrf.h"
 #include "bsp.h"
 
-
 #define UART_TX_BUF_SIZE	256
 #define UART_RX_BUF_SIZE	256
-#define UART_MAX_DATA_LEN	128
+#define UART_MAX_DATA_LEN	(UART_QUEUE_CMD_LEN + 1)
 
 static void _uart_print_newline(void)
 {
@@ -30,8 +33,9 @@ static void _uart_print_newline(void)
 /**@snippet [Handling the data received over UART] */
 void uart_event_handle(app_uart_evt_t * p_event)
 {
+	char error_msg[32] = {0,};
 	static uint8_t index = 0;
-	static uint8_t data_array[UART_MAX_DATA_LEN] = {0,};
+	static char data_array[UART_MAX_DATA_LEN] = {0,};
 	uint8_t cr;
 
 	switch (p_event->evt_type) {
@@ -42,17 +46,43 @@ void uart_event_handle(app_uart_evt_t * p_event)
 
 			if (cr == '\r') {
 				_uart_print_newline();
-			}
 
-			if ((data_array[index - 1] == '\r') || (index >= UART_MAX_DATA_LEN)) {
+				if (index == UART_MAX_DATA_LEN) {
+					data_array[index-1] = 0;
+					if (!uart_queue_enqueue(data_array)) {
+						sprintf(error_msg, "ENQUEUE FAILED\r\n");
+						io_uart_print(error_msg);
+					}
+#if 0
+					else {
+						char b[128] = {0,};
+
+						data_array[3] = 0;
+						sprintf(b, "data_array:%s\r\n", data_array);
+						io_uart_print(b);
+
+						char *aaa = uart_queue_dequeue();
+						if (aaa != NULL) {
+							memset(b, 0, sizeof(b));
+							sprintf(b, "%x %x %x\r\n", aaa[0], aaa[1], aaa[2]);
+							io_uart_print(b);
+
+							memset(b, 0, sizeof(b));
+							sprintf(b, "%p\r\n", &aaa[0]);
+							io_uart_print(b);
+						}
+						else {
+							sprintf(b, "NULL\r\n");
+							io_uart_print(b);
+						}
+					}
+#endif
+				}
 				index = 0;
 			}
-
-			/*
-			while (app_uart_get(&cr) != NRF_SUCCESS);
-			while (app_uart_put(cr) != NRF_SUCCESS);
-			*/
-
+			else if (index >= UART_MAX_DATA_LEN) {
+				index = 0;
+			}
 			break;
         case APP_UART_COMMUNICATION_ERROR:
             APP_ERROR_HANDLER(p_event->data.error_communication);
@@ -63,6 +93,7 @@ void uart_event_handle(app_uart_evt_t * p_event)
         default:
             break;
 	}
+
 	/*
 	//printf("\r\n uart_event_handle \r\n");
     static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
@@ -101,6 +132,19 @@ void uart_event_handle(app_uart_evt_t * p_event)
 	*/
 }
 
+void io_uart_print(char *str)
+{
+	int i;
+	for (i=0; i<strlen(str); i++) {
+		app_uart_put(str[i]);
+	}
+}
+
+char *io_uart_cmd_get(void)
+{
+	return uart_queue_dequeue();
+}
+
 void io_uart_init(void)
 {
     uint32_t                     err_code;
@@ -125,7 +169,6 @@ void io_uart_init(void)
 
     printf("\r\n[UART] initialized!\r\n");
 }
-
 
 void io_uart_cleanup(void)
 {
