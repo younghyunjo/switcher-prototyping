@@ -17,7 +17,7 @@ void uart_service_do(void)
 		if (_cmds[i].cmd == NULL)
 			continue;
 
-		if (strncmp(_cmds[i].cmd, cmd, UART_SERVICE_MAX_LENGTH_CMD) !=0) {
+		if (strncasecmp(_cmds[i].cmd, cmd, UART_SERVICE_MAX_LENGTH_CMD) !=0) {
 			continue;
 		}
 

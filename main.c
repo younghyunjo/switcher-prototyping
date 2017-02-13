@@ -1042,21 +1042,13 @@ int main(void)
 #include "uart_service.h"
 #include <time.h>
 
-#define APP_TIMER_PRESCALER              0                                           /**< Value of the RTC1 PRESCALER register. */
-#define APP_TIMER_OP_QUEUE_SIZE         8                                                       /**< Size of timer operation queues. */
+#include "hw_config.h"
 
 static void button_released(void)
 {
-		printf("TODO MOTOR CTRL\r\n");
-		io_motor_move();
+	printf("TODO MOTOR CTRL\r\n");
+	io_motor_move();
 }
-
-/*
-static void bat_level(uint16_t level)
-{
-	printf("bat level:%d\r\n", level);
-}
-*/
 
 static void lfclk_config(void)
 {
@@ -1066,32 +1058,74 @@ static void lfclk_config(void)
     nrf_drv_clock_lfclk_request(NULL);
 }
 
-static void _print_battery_level(char *cmd)
+static void _bat_level_print(uint16_t bat_level)
 {
-	char bat_level[32] = {0,};
-	sprintf(bat_level, "32\r\n");
-	io_uart_print(bat_level);
+	char bat_level_str[32] = {0,};
+	sprintf(bat_level_str, "BAT:%d\r\n", bat_level);
+	io_uart_print(bat_level_str);
+}
+
+static void _uart_bat_cmd_do(char *cmd)
+{
+	io_battery_level(_bat_level_print);
+}
+
+static void _uart_swt_cmd_do(char *cmd)
+{
+	io_motor_move();
+}
+
+static void _uart_sch_cmd_do(char *cmd)
+{
+	//TODO
+}
+
+static void _uart_now_cmd_do(char *cmd)
+{
+	time_t now = io_time_get();
+
+	char now_str[32] = {0,};
+	ctime_r(&now, now_str);
+	now_str[strlen(now_str)] = '\r';
+
+	io_uart_print(now_str);
 }
 
 int main(void)
 {
     lfclk_config();
-    //APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, NULL);
 
     nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
     SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
 	io_uart_init();
 	io_time_init();
-	io_motor_init(6, 7);
+	io_motor_init(MOTOR_PIN, MOTOR_TR_PIN);
 
-	io_button_init(17, button_released);
-	io_battery_init(6, 3410/2, 4090/2);
+	io_button_init(BUTTON_PIN, button_released);
+	io_battery_init(BAT_APIN, BAT_MIN_LEVEL, BAT_MAX_LEVEL);
 
 	struct uart_service_cmd uart_service_cmds[] = {
-		{.cmd = "bat", .cb = _print_battery_level}
+		{.cmd = "bat", .cb = _uart_bat_cmd_do},
+		{.cmd = "swt", .cb = _uart_swt_cmd_do},
+		{.cmd = "now", .cb = _uart_now_cmd_do},
+		{.cmd = "sch", .cb = _uart_sch_cmd_do},
 	};
-	uart_service_init(uart_service_cmds, 1);
+	uart_service_init(uart_service_cmds, ARRAY_SIZE(uart_service_cmds));
+
+	{
+
+		struct tm tm = {
+			.tm_sec = 35,
+			.tm_min = 58,
+			.tm_hour = 9,
+			.tm_mday = 8,
+			.tm_mon = 1 - 1,
+			.tm_year = 2017 - 1900,
+		};
+		time_t n = mktime(&tm);
+		io_time_set(n);
+	}
 
 	// Enter main loop.
 	for (;;)
@@ -1103,18 +1137,6 @@ int main(void)
 		int a;
 		scanf("%d\n", &a);
 		printf("%d\n", a);
-		{
-
-			struct tm tm = {
-				.tm_sec = 35,
-				.tm_min = 58,
-				.tm_hour = 9,
-				.tm_mday = 8,
-				.tm_mon = 2,
-				.tm_year = 2017 - 1900,
-			};
-			printf("%d\r\n", (int)mktime(&tm));
-		}
 		//io_battery_level(bat_level);
 		nrf_delay_ms(1000);
 		__WFE();
