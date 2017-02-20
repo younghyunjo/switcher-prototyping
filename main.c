@@ -27,6 +27,7 @@
 #include "current_time_service.h"
 #include "device_information_service.h"
 #include "hw_config.h"
+#include "motor.h"
 #include "now.h"
 #include "toggle_switch.h"
 
@@ -87,6 +88,7 @@ static void _battery_level_get_by_ble(void)
 
 static void _switch_pushed(void)
 {
+	motor_move();
 	NRF_LOG_INFO("SWITCH PUSHED\r\n");
 }
 
@@ -104,6 +106,7 @@ int main(void)
 
 	now_init();
 	battery_init(BAT_APIN, BAT_MIN_LEVEL, BAT_MAX_LEVEL);
+	motor_init(MOTOR_PIN, MOTOR_TR_PIN);
 	toggle_switch_init(TOGGLE_SWITCH_PIN, _switch_pushed);
 
 	bluetooth_init();
