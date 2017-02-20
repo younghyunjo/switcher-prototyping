@@ -137,7 +137,7 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 - APP_BUTTON에서 Button Event가 발생 안함
     - 원인 : SOFTDEVICE에 CLOCK 설정을 하지 않아서 Timer Tick이 동작하지 않았다.
     - 해결 :  아래코드 호출하도록 수정
-    - ```
+```
 nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 ```
@@ -145,7 +145,7 @@ SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
 - nrf_log_XXX 출력
     - 해결 : sdk_config.h에 아래 코드 추가
-    - ```
+```
 #ifndef NRF_LOG_ENABLE
 #definen NRF_LOG_ENABLE 1
 #endif
