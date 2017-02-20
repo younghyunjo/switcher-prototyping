@@ -1,6 +1,8 @@
 #ifndef _HW_CONFIG_H_
 #define _HW_CONFIG_H_
 
+#define MANUFACTURER_NAME	"YounghyunJo"
+
 #define MOTOR_PIN		6
 #define MOTOR_TR_PIN 	7
 

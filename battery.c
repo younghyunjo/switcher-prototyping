@@ -12,11 +12,11 @@ static nrf_drv_adc_channel_t m_channel_config;
 
 static uint16_t _min_voltage_x1000;
 static uint16_t _max_voltage_x1000;
-static void (*_button_level_cb)(uint16_t) = NULL;
+static void (*_button_level_cb)(uint8_t) = NULL;
 
-static uint16_t _battery_calc(uint16_t adc_value)
+static uint8_t _battery_calc(uint16_t adc_value)
 {
-	uint16_t level = 0;
+	uint8_t level = 0;
 
 	if (adc_value >= _max_voltage_x1000 / ADC_MAX_VOLTAGE) {
 		level = 100;
@@ -40,21 +40,17 @@ static void _adc_event_handler(nrf_drv_adc_evt_t const * p_event)
 	}
 
 	uint16_t adc_value = p_event->data.done.p_buffer[0];
-	uint16_t level = _battery_calc(adc_value);
+	uint8_t level = _battery_calc(adc_value);
 
 	if (_button_level_cb) 
 		_button_level_cb(level);
 	_button_level_cb = NULL;
 
-#if 1
-	printf("[BAT] level: %d\r\n", level);
-#endif
 }
 
-void io_battery_level(void (*button_level_cb)(uint16_t))
+void battery_level_get(void (*button_level_cb)(uint8_t))
 {
 	if (_button_level_cb) {
-		printf("[BTN] cb is NULL\r\n");
 		return;
 	}
 
@@ -64,7 +60,7 @@ void io_battery_level(void (*button_level_cb)(uint16_t))
 	nrf_drv_adc_sample();
 }
 
-void io_battery_init(uint8_t battery_pin, uint16_t min_voltage_x1000, uint16_t max_voltage_x1000)
+void battery_init(uint8_t battery_pin, uint16_t min_voltage_x1000, uint16_t max_voltage_x1000)
 {
 	ret_code_t ret_code;
 
@@ -84,11 +80,9 @@ void io_battery_init(uint8_t battery_pin, uint16_t min_voltage_x1000, uint16_t m
 
 	_min_voltage_x1000 = min_voltage_x1000;
 	_max_voltage_x1000 = max_voltage_x1000;
-
-	printf("[BAT] initialized\r\n");
 }
 
-void io_battery_cleanup(void)
+void battery_cleanup(void)
 {
 	nrf_drv_adc_channel_disable(&m_channel_config);
 	nrf_drv_adc_uninit();
