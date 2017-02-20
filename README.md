@@ -128,7 +128,7 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 
 -  UART로 printf 출력이 안 나올경우
     - 해결 : sdk_config.h에 아래 코드 추가
-    - ```
+```
 #ifndef RETARGET_ENABLE
 #definen RETARGET_ENABLE 1
 #endif
