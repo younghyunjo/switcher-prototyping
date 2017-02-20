@@ -125,13 +125,15 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
         - 부트로더 Flashing
             - 다운로드 받은 부트로더를 "BOOTLOADER" USB 디바이스로 복사(DRAG & DROP)
             - 정상적으로 되면 LD6 LED가 깜빡인다.
-- UART로 printf 출력이 안 나올경우
+
+-  UART로 printf 출력이 안 나올경우
     - 해결 : sdk_config.h에 아래 코드 추가
     - ```
-        #ifndef RETARGET_ENABLE
-        #definen RETARGET_ENABLE 1
-        #endif
+#ifndef RETARGET_ENABLE
+#definen RETARGET_ENABLE 1
+#endif
 ```
+
 - APP_BUTTON에서 Button Event가 발생 안함
     - 원인 : SOFTDEVICE에 CLOCK 설정을 하지 않아서 Timer Tick이 동작하지 않았다.
     - 해결 :  아래코드 호출하도록 수정
@@ -140,12 +142,13 @@ nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 ```
     - 원인 : sdk_config.h에 Timer가 비활성화 되어 있었다.
+
 - nrf_log_XXX 출력
     - 해결 : sdk_config.h에 아래 코드 추가
     - ```
-        #ifndef NRF_LOG_ENABLE
-        #definen NRF_LOG_ENABLE 1
-        #endif
+#ifndef NRF_LOG_ENABLE
+#definen NRF_LOG_ENABLE 1
+#endif
 ```
 
 ##Appendix
