@@ -6,7 +6,7 @@
 #define MOTOR_PIN		6
 #define MOTOR_TR_PIN 	7
 
-#define BUTTON_PIN		17
+#define TOGGLE_SWITCH_PIN		17
 
 #define BAT_APIN		6
 #define BAT_MIN_LEVEL	(3410/2)

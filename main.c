@@ -28,6 +28,7 @@
 #include "device_information_service.h"
 #include "hw_config.h"
 #include "now.h"
+#include "toggle_switch.h"
 
 #include "app_timer.h"
 
@@ -84,6 +85,11 @@ static void _battery_level_get_by_ble(void)
 	battery_level_get(battery_service_level_update);
 }
 
+static void _switch_pushed(void)
+{
+	NRF_LOG_INFO("SWITCH PUSHED\r\n");
+}
+
 /**@brief Function for application main entry.
 */
 int main(void)
@@ -97,20 +103,8 @@ int main(void)
 	timers_init();
 
 	now_init();
-	{
-
-		struct tm tm = {
-			.tm_sec = 35,
-			.tm_min = 58,
-			.tm_hour = 9,
-			.tm_mday = 8,
-			.tm_mon = 1 - 1,
-			.tm_year = 2017 - 1900,
-		};
-		time_t n = mktime(&tm);
-		now_update(n);
-	}
 	battery_init(BAT_APIN, BAT_MIN_LEVEL, BAT_MAX_LEVEL);
+	toggle_switch_init(TOGGLE_SWITCH_PIN, _switch_pushed);
 
 	bluetooth_init();
 

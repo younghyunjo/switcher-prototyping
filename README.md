@@ -41,7 +41,7 @@
   9. OTA
   10. 저전력 방안 마련
 
-현재 4번까지 구현완료 했으며, 5~7은 이전에 작성한 소스를 약간만 수정하면 금방 할 수 있을 것으로 예샹된다.
+현재 5번까지 구현완료 했으며, 6~7은 이전에 작성한 소스를 약간만 수정하면 금방 할 수 있을 것으로 예샹된다.
 8번 기능도, BLE 서비스만 추가하면 되기 때문에 큰 문제가 없을 것으 예상된다.
 
 이런 시행착오를 들은 전 펌웨어 개발자는 매우 즐거워했다는.....
@@ -67,12 +67,12 @@
 
 ##2. 소스 파일 설명
 * battery.h : ADC를 이용하여 배터리 잔량을 확인한다.
-* * Battery Level을 얻어오는 동작은 비동기로 동작하니 사용에 주의해야 한다.
+  * Battery Level을 얻어오는 동작은 비동기로 동작하니 사용에 주의해야 한다.
 
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgYmF0dGVyeV9sZXZlbF9nZXQoYXN5bmMpCgpNYWluLT4rQgAbBjoAGBIKABQHLT4rQURDKEhXKTogbnJmX2Rydl9hZGNfYnVmZmVyX2NvbnZlcnQKAB0HLS0-LQBMCAoAIyBzYW1wbGUKbm90ZSByaWdodCBvZiAAZQhBREMgU1RBUlQAPQotPi1NYWluOiAKABkbRklOSVNIAIEHCQCBBQogQURDIERvbmUgQ2FsbGJhY2sAgRgJIC0tPiAAVQYAggsGIExldmVsAB8K&s=napkin)
 
 * now.h : 시간 동기를 하며, 하드웨어자원을 이용하여 보드에 저장된 시간을 흐르게 한다.
-* * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
+  * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
 
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgIFRpbWUgSW5jcmVhc2luZwoKTWFpbi0-K05vdzogbm93X2luaXQKCk5vdy0-K1JUQyhIVyk6ADEFciBTdGFydAoADgctLT4tADAFACcGLT4tTWFpbjoKCgpsb29wIEV2ZXJ5IGEgc2Vjb25kCiAgICAKICAgIAA2CD4AbAUAUgZFdmVudAAeBQByBQCBBgUAgRwHZSBDdXJyZW50AIE0BQBBBmVuZAoKCg&s=napkin)
 * io_button.h : 타켓보드에 연결된 버튼의 눌러짐을 확인한다.
@@ -141,7 +141,6 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 nrf_clock_lf_cfg_t clock_lf_cfg = NRF_CLOCK_LFCLKSRC;
 SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 ```
-    - 원인 : sdk_config.h에 Timer가 비활성화 되어 있었다.
 
 - nrf_log_XXX 출력
     - 해결 : sdk_config.h에 아래 코드 추가
@@ -171,6 +170,12 @@ SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 
 ###B. ARMGCC 빌드 
 * Makefile 위치 : pca10028/s130/armgcc/Makefile
+* Build 명령어 
+```
+make
+make flash
+make flash_softdevice
+```
 
 ###C. 참고사이트
 칩 데이터시트 : https://lancaster-university.github.io/microbit-docs/resources/datasheets/nRF51822.pdf
