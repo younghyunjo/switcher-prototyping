@@ -17,6 +17,7 @@ SRC_FILES += \
   $(PROJ_DIR)/current_time_service.c \
   $(PROJ_DIR)/device_information_service.c \
   $(PROJ_DIR)/motor.c \
+  $(PROJ_DIR)/motor_service.c \
   $(PROJ_DIR)/now.c \
   $(PROJ_DIR)/toggle_switch.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \

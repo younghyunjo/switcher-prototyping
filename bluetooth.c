@@ -24,7 +24,7 @@
 #include "ble_conn_state.h"
 #include "battery_service.h"
 #include "current_time_service.h"
-
+#include "motor_service.h"
 
 #define NRF_LOG_MODULE_NAME "BLUETOOTH"
 #include "nrf_log.h"
@@ -266,6 +266,7 @@ static void ble_evt_dispatch(ble_evt_t * p_ble_evt)
 	nrf_ble_gatt_on_ble_evt(&m_gatt, p_ble_evt);
 	battery_service_evt_handler(p_ble_evt);
 	current_time_service_evt_handler(p_ble_evt);
+	motor_service_evt_handler(p_ble_evt);
 }
 
 static void sys_evt_dispatch(uint32_t sys_evt)

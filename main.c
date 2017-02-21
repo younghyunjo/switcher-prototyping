@@ -28,6 +28,7 @@
 #include "device_information_service.h"
 #include "hw_config.h"
 #include "motor.h"
+#include "motor_service.h"
 #include "now.h"
 #include "toggle_switch.h"
 
@@ -114,6 +115,7 @@ int main(void)
 	battery_service_init(_battery_level_get_by_ble);
 	device_information_service_init(MANUFACTURER_NAME);
 	current_time_service_init(now, now_update);
+	motor_service_init(motor_move);
 
 	// Start execution.
 	bluetooth_advertising_start();

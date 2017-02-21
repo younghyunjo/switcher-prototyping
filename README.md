@@ -41,19 +41,18 @@
   9. OTA
   10. 저전력 방안 마련
 
-현재 7번까지 구현완료.
-8번 기능도, BLE 서비스만 추가하면 되기 때문에 큰 문제가 없을 것으 예상된다.
+현재 8번까지 구현완료.
 
 이런 시행착오를 들은 전 펌웨어 개발자는 매우 즐거워했다는.....
 
 ##1. 진행사항
 
-### 25%(3/12) 완료 중
+### 4/12 완료
 
 |번호|요구사항|
 |---|---|
 |1|~~버튼 누르면 모터 동작~~|
-|2|BLE 통해 모터 동작|
+|2|~~BLE 통해 모터 동작~~|
 |3|~~BLE 통해 배터리 잔량 읽기~~|
 |4|~~BLE 통해 시간 동기 및 보드 시간 읽기~~|
 |5|BLE 통해 예약정보 10개 저장, 수정 및 앱을 통해 해당정보 확인|
@@ -75,8 +74,11 @@
   * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
 
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgIFRpbWUgSW5jcmVhc2luZwoKTWFpbi0-K05vdzogbm93X2luaXQKCk5vdy0-K1JUQyhIVyk6ADEFciBTdGFydAoADgctLT4tADAFACcGLT4tTWFpbjoKCgpsb29wIEV2ZXJ5IGEgc2Vjb25kCiAgICAKICAgIAA2CD4AbAUAUgZFdmVudAAeBQByBQCBBgUAgRwHZSBDdXJyZW50AIE0BQBBBmVuZAoKCg&s=napkin)
-* io_button.h : 타켓보드에 연결된 버튼의 눌러짐을 확인한다.
-* io_motor.h : PWM을 이용하여 모터를 구동한다.
+* toggle_switch.h : 타켓보드에 연결된 버튼의 눌러짐을 확인한다.
+  * app_button library를 이용하여 구현했으며, 스위치가 눌러졌을 때 호출할 콜백을 등록하여, 이벤트를 받는다.
+* motor.h : PWM을 이용하여 모터를 구동한다.
+  * motor_move() 함수는 Blocking으로 동작한다.
+  * 나중에 timer를 써서 Non-Blocking으로 동작하게 수정하자.
 * io_uart.h : UART을 통해 들어온 문자를 받고, UART를 통해 문자열을 출력한다.
 * uart_queue.h : UART로 들어온 문자열을 Circular Queue에 저장한다.
 * uart_service.h : UART로 수신하는 명령어들을 관리하고, 해당 명령어를 수신하면 명령어 수행을 위한 콜백을 호출한다.
@@ -110,7 +112,20 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 배터리 전압은 소수점으로 표시되기 때문에 Floating Point 계산을 하지 않기 위해 최대, 최소 전압 x1000한 값을 받는다.
 이미 x1000을 한 값을 받기 때문에, 계산상에 x1024한 값 대신에 x1000한 값을 그대로 쓰도록 구현하였다.
 
-##5. Trouble Shooting
+##5. BLE Service Spec
+### 5.1 모터 구동
+- Service UUID : 0000f000-0000-1000-8000-008050f9b34fb
+- Characteristic UUID : 0000f000-0000-1000-8000-008050f9b34fb
+- Type : unsigned char
+- Value : 1
+
+### 5.2 시간동기
+- Service UUID : 0x1805
+- Characteristic UUID : 0x2A2B
+- Type : int time[4]
+- Value : Unix Time(Epoch Time) UTC + 0
+
+##6. Trouble Shooting
 - nRF51 보드들 PC와 연결했을 때 USB 인식이 안됨
     - 원인 : 부트로더를 잘못 구워서 인식이 안됨
     - 해결 : 부트로더 Reflashing
