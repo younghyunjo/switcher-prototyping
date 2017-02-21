@@ -30,6 +30,7 @@
 #include "motor.h"
 #include "motor_service.h"
 #include "now.h"
+#include "schedule.h"
 #include "toggle_switch.h"
 
 #include "app_timer.h"
@@ -110,6 +111,8 @@ int main(void)
 	motor_init(MOTOR_PIN, MOTOR_TR_PIN);
 	toggle_switch_init(TOGGLE_SWITCH_PIN, _switch_pushed);
 
+	schedule_init();
+
 	bluetooth_init();
 
 	battery_service_init(_battery_level_get_by_ble);
@@ -119,6 +122,19 @@ int main(void)
 
 	// Start execution.
 	bluetooth_advertising_start();
+
+
+#if 0
+	{
+		struct schedule_info s;
+		s.day = 1;
+		s.hour = 12;
+		s.minute = 25;
+		s.on = 1;
+
+		schedule_add(&s);
+	}
+#endif
 
 	// Enter main loop.
 	for (;;)
