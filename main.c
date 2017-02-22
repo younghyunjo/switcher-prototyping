@@ -126,7 +126,8 @@ int main(void)
 
 #if 0
 	{
-		struct schedule_info s;
+		struct schedule s;
+		s.id = 0xff;
 		s.day = 1;
 		s.hour = 12;
 		s.minute = 25;
