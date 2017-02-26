@@ -18,7 +18,6 @@ struct schedule_db_schema {
 	uint8_t day;
 	uint8_t hour;
 	uint8_t minute;
-	uint8_t on;
 };
 static struct schedule_db_schema db_schema __ALIGN(4);
 
@@ -36,7 +35,6 @@ static ret_code_t _schedule_write(uint8_t record_key, struct schedule *schedule)
 	db_schema.day = schedule->day;
 	db_schema.hour = schedule->hour;
 	db_schema.minute = schedule->minute;
-	db_schema.on = schedule->on;
 
 	fds_record_chunk_t chunk = {
 		.p_data = (void*)&db_schema,
@@ -89,7 +87,6 @@ static ret_code_t _schedule_read(uint8_t record_key, struct schedule *schedule)
 	schedule->day = schema->day;
 	schedule->hour = schema->hour;
 	schedule->minute = schema->minute;
-	schedule->on = schema->on;
 
 	NRF_LOG_INFO("_schedule_read key:%d\r\n", record_key);
 
@@ -143,8 +140,8 @@ static void _load_schedule()
 		schedule_desc.schedules[i].empty = false;
 		memcpy(&schedule_desc.schedules[i].schedule, &schedule, sizeof(struct schedule)); 
 
-		NRF_LOG_INFO("_load_schedule. id:%d day:%d hour:%d minute:%d on:%d\r\n",
-				schedule.id, schedule.day, schedule.hour, schedule.minute, schedule.on);
+		NRF_LOG_INFO("_load_schedule. id:%d day:%d hour:%d minute:%d\r\n",
+				schedule.id, schedule.day, schedule.hour, schedule.minute);
 
 	}
 
