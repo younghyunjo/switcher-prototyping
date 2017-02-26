@@ -13,6 +13,8 @@ void now_update(time_t update_time);
  */
 time_t now(void);
 
+void now_event_handler_register(void (*handler)(time_t now));
+
 /*
  * @brief initialization current time
  */
