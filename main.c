@@ -27,12 +27,14 @@
 #include "current_time_service.h"
 #include "device_information_service.h"
 #include "hw_config.h"
+#include "io_uart.h"
 #include "motor.h"
 #include "motor_service.h"
 #include "now.h"
 #include "schedule.h"
 #include "schedule_service.h"
 #include "toggle_switch.h"
+#include "uart_service.h"
 
 #include "nrf_delay.h"
 
@@ -41,6 +43,9 @@
 #define NRF_LOG_MODULE_NAME "APP"
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
+
+
+//#define UART_ENABLE
 
 
 #define APP_TIMER_PRESCALER              0                                           /**< Value of the RTC1 PRESCALER register. */
@@ -75,16 +80,6 @@ static void timers_init(void)
 	APP_TIMER_INIT(APP_TIMER_PRESCALER, APP_TIMER_OP_QUEUE_SIZE, false);
 }
 
-/**@brief Function for initializing services that will be used by the application.
- *
- * @details Initialize the Heart Rate, Battery and Device Information services.
- */
-static void power_manage(void)
-{
-	uint32_t err_code = sd_app_evt_wait();
-
-	APP_ERROR_CHECK(err_code);
-}
 
 static void _battery_level_get_by_ble(void)
 {
@@ -95,6 +90,57 @@ static void _switch_pushed(void)
 {
 	motor_move();
 	NRF_LOG_INFO("SWITCH PUSHED\r\n");
+}
+
+
+static void _bat_level_print(uint8_t bat_level)
+{
+	char bat_level_str[32] = {0,};
+	sprintf(bat_level_str, "BAT:%d\r\n", bat_level);
+	io_uart_print(bat_level_str);
+}
+static void _uart_bat_cmd_do(char *cmd)
+{
+	battery_level_get(_bat_level_print);
+}
+
+static void _uart_swt_cmd_do(char *cmd)
+{
+	motor_move();
+	NRF_LOG_INFO("SWITCH PUSHED\r\n");
+}
+
+static void _uart_sch_cmd_do(char *cmd)
+{
+	struct schedule schedules[SCHEDULE_MAX_NR];
+	schedule_list(schedules);
+
+	int i;
+	char sch_str[32] = {0,};
+	for (i=0; i<SCHEDULE_MAX_NR; i++) {
+		if (schedules[i].id == SCHEDULE_ID_UNKNOWN) {
+			continue;
+		}
+
+		memset(sch_str, 0, sizeof(sch_str));
+		snprintf(sch_str, sizeof(sch_str), "id:%d day:%d hour:%d minute:%d\r\n",
+				schedules[i].id,
+				schedules[i].day,
+				schedules[i].hour,
+				schedules[i].minute);
+		io_uart_print(sch_str);
+	}
+}
+
+static void _uart_now_cmd_do(char *cmd)
+{
+	time_t current_time = now();
+
+	char now_str[32] = {0,};
+	ctime_r(&current_time, now_str);
+	now_str[strlen(now_str)] = '\r';
+
+	io_uart_print(now_str);
 }
 
 /**@brief Function for application main entry.
@@ -108,6 +154,10 @@ int main(void)
 	APP_ERROR_CHECK(err_code);
 
 	timers_init();
+
+#ifdef UART_ENABLE
+	io_uart_init();
+#endif
 
 	now_init();
 	battery_init(BAT_APIN, BAT_MIN_LEVEL, BAT_MAX_LEVEL);
@@ -127,6 +177,14 @@ int main(void)
 
 	// Start execution.
 	bluetooth_advertising_start();
+
+	struct uart_service_cmd uart_service_cmds[] = {
+		{.cmd = "bat", .cb = _uart_bat_cmd_do},
+		{.cmd = "swt", .cb = _uart_swt_cmd_do},
+		{.cmd = "now", .cb = _uart_now_cmd_do},
+		{.cmd = "sch", .cb = _uart_sch_cmd_do},
+	};
+	uart_service_init(uart_service_cmds, ARRAY_SIZE(uart_service_cmds));
 
 #if 0
 	{
@@ -159,10 +217,14 @@ int main(void)
 	// Enter main loop.
 	for (;;)
 	{
-		if (NRF_LOG_PROCESS() == false)
-		{
-			power_manage();
+#ifdef UART_ENABLE
+		__WFE();
+		uart_service_do();
+#else
+		if (NRF_LOG_PROCESS() == false) {
+			__WFE();
 		}
+#endif
 	}
 }
 

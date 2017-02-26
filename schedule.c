@@ -10,7 +10,7 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-#define SCHEDULE_FILE_ID			0x01
+#define SCHEDULE_FILE_ID			0x5555
 
 #define INDEX_TO_RECORD_KEY(x)		((x)+1)
 
@@ -51,9 +51,21 @@ static ret_code_t _schedule_write(uint8_t record_key, struct schedule *schedule)
 	fds_record_desc_t desc;
 	memset(&desc, 0, sizeof(desc));
 
-	ret_code_t err_code = fds_record_write(&desc, &record_to_write);
+	fds_find_token_t ft;
+	memset(&ft, 0, sizeof(fds_find_token_t));
+
+	ret_code_t err_code = fds_record_find(SCHEDULE_FILE_ID, record_key, &desc, &ft);
 	if (err_code != FDS_SUCCESS) {
-		NRF_LOG_ERROR("fds_record_write failed. %d\r\n", err_code);
+		err_code = fds_record_write(&desc, &record_to_write);
+		if (err_code != FDS_SUCCESS) {
+			NRF_LOG_ERROR("fds_record_write failed. %d\r\n", err_code);
+		}
+	}
+	else {
+		err_code = fds_record_update(&desc, &record_to_write);
+		if (err_code != FDS_SUCCESS) {
+			NRF_LOG_ERROR("fds_record_update failed. %d\r\n", err_code);
+		}
 	}
 
 	return err_code;
@@ -150,18 +162,19 @@ static void _load_schedule()
 
 static void _fds_evt_handler(fds_evt_t const * const p_evt)
 {
-	NRF_LOG_INFO("FDS EVT ID:%d\r\n", p_evt->id);
+	NRF_LOG_INFO("FDS EVT ID:%d ret:%d\r\n", p_evt->id, p_evt->result);
 	switch (p_evt->id) {
 		case FDS_EVT_INIT:
 			_load_schedule();
 			break;
 		case FDS_EVT_WRITE:
-			NRF_LOG_INFO("written file_id:%d record_key:%d\r\n", p_evt->write.file_id, p_evt->write.record_key);
+			NRF_LOG_INFO("written file_id:%d record_key:%d update:%d\r\n", p_evt->write.file_id, p_evt->write.record_key, (p_evt->write.is_record_updated));
+			break;
+		case FDS_EVT_UPDATE:
 			break;
 		case FDS_EVT_DEL_RECORD:
 			NRF_LOG_INFO("delete file_id:%d record_key:%d\r\n", p_evt->write.file_id, p_evt->write.record_key);
 			fds_gc();
-
 			break;
 		default:
 			break;
@@ -177,7 +190,6 @@ void schedule_timer_evt_handler(time_t now)
 		return;
 	}
 
-
 	NRF_LOG_INFO("day:%d\r\n", calendar_time.tm_wday);
 	NRF_LOG_INFO("hour:%d\r\n", calendar_time.tm_hour);
 	NRF_LOG_INFO("minute:%d\r\n", calendar_time.tm_min);
@@ -186,7 +198,8 @@ void schedule_timer_evt_handler(time_t now)
 	for (i=0; i<SCHEDULE_MAX_NR; i++) {
 		if (schedule_desc.schedules[i].empty)
 			continue;
-		if (schedule_desc.schedules[i].schedule.day == calendar_time.tm_wday &&
+		
+		if ((schedule_desc.schedules[i].schedule.day && (1 <<  calendar_time.tm_wday)) &&
 				schedule_desc.schedules[i].schedule.hour == calendar_time.tm_hour &&
 				schedule_desc.schedules[i].schedule.minute == calendar_time.tm_min) {
 			NRF_LOG_INFO("Move Motor\r\n");

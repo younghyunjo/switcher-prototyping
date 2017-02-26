@@ -17,6 +17,9 @@ SRC_FILES += \
   $(PROJ_DIR)/current_time_service.c \
   $(PROJ_DIR)/device_information_service.c \
   $(PROJ_DIR)/motor.c \
+  $(PROJ_DIR)/io_uart.c \
+  $(PROJ_DIR)/uart_queue.c \
+  $(PROJ_DIR)/uart_service.c \
   $(PROJ_DIR)/motor_service.c \
   $(PROJ_DIR)/now.c \
   $(PROJ_DIR)/schedule.c \
@@ -29,6 +32,8 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/util/app_error_weak.c \
   $(SDK_ROOT)/components/libraries/pwm/app_pwm.c \
   $(SDK_ROOT)/components/libraries/timer/app_timer.c \
+  $(SDK_ROOT)/components/libraries/fifo/app_fifo.c \
+  $(SDK_ROOT)/components/libraries/uart/app_uart_fifo.c \
   $(SDK_ROOT)/components/libraries/util/app_util_platform.c \
   $(SDK_ROOT)/components/libraries/crc16/crc16.c \
   $(SDK_ROOT)/components/libraries/fds/fds.c \
@@ -96,6 +101,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/drivers_nrf/i2s \
   $(SDK_ROOT)/components/libraries/gpiote \
   $(SDK_ROOT)/components/drivers_nrf/gpiote \
+  $(SDK_ROOT)/components/libraries/fifo \
   $(SDK_ROOT)/components/boards \
   $(SDK_ROOT)/components/drivers_nrf/common \
   $(SDK_ROOT)/components/ble/ble_advertising \

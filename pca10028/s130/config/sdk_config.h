@@ -279,7 +279,7 @@
 // <e> ADC_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef ADC_CONFIG_LOG_ENABLED
-#define ADC_CONFIG_LOG_ENABLED 1
+#define ADC_CONFIG_LOG_ENABLED 0
 #endif
 #if  ADC_CONFIG_LOG_ENABLED
 // <o> ADC_CONFIG_LOG_LEVEL  - Default Severity level
@@ -2965,6 +2965,13 @@
 // <h> nRF_Libraries 
 
 //==========================================================
+// <q> APP_FIFO_ENABLED  - app_fifo - Software FIFO implementation
+ 
+
+#ifndef APP_FIFO_ENABLED
+#define APP_FIFO_ENABLED 1
+#endif
+
 // <q> APP_GPIOTE_ENABLED  - app_gpiote - GPIOTE events dispatcher
  
 
@@ -3038,7 +3045,7 @@
 // <e> APP_UART_ENABLED - app_uart - UART driver
 //==========================================================
 #ifndef APP_UART_ENABLED
-#define APP_UART_ENABLED 0
+#define APP_UART_ENABLED 1
 #endif
 #if  APP_UART_ENABLED
 // <o> APP_UART_DRIVER_INSTANCE  - UART instance used
