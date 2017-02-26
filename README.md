@@ -1,18 +1,32 @@
 # switcher-prototype
 
 ##0. 시행착오
+###  시행착오 (2/26)
+* SDK 버그 발견
+  * 버그 내용 : Flash Memory의 내용을 삭제해도, 삭제가 안되는 경우가 발생한다.
+  * 버그 API : fds_record_delete()
+  * 배경  
+    * 예약 스켸줄을 저정하기 위해선 칩의 Flash Memory를 사용해야 한다.
+    * Flash Memory를 편하게 사용하기 Flash Data Storage(fds) 라이브러리를 사용하였다.
+  * 문제점
+    * BLE를 통해서 삭제 명령을 받았을 경우, fds_record_delete() API를 호출해서 Flash에 저장된 예약 스케쥴을 삭제한다.
+    * **fds_record_delete를 호출해도, 해당 데이터가 삭제가 안되는 경우가 자주 발생하고 있다.**
+  * 해결책
+    * SDK 내부 버그로 추청이 되며, SDK 버전 업데이트 또는, 제조사에게 수정 요청을 해야한다.
 
-* 초기 계획
-  1. UART를 동작시켜, 디버그 메시지 확인
-  2. 버튼(HW)를 눌려 모터 동작
-  3. 배터리(ADC), 시간동기 기능 구현
-  4. UART를 통해 각 기능 제어
-  5. BLE을 이용해 각 기능 제어
-  6. 예약기능 동작
-  7. OTA
-  8. 저전력 방안 바면
+  ##** KNOWN BUG로 처리하였습니다.**
 
-* 시행착오(2/18)
+### 시행착오(2/18)
+  * 초기 계획
+    1. UART를 동작시켜, 디버그 메시지 확인
+    2. 버튼(HW)를 눌려 모터 동작
+    3. 배터리(ADC), 시간동기 기능 구현
+    4. UART를 통해 각 기능 제어
+    5. BLE을 이용해 각 기능 제어
+    6. 예약기능 동작
+    7. OTA
+    8. 저전력 방안 바면
+
   * 배경 : 시간 증가의 정확도 향상을 위해 RTC 하드웨어 자원을 시간 관리 모듈(NOW)만 사용하도록 설계함
     * 타겟 보드의 시간을 증가시키기 위해, RTC에서 매 초마다 이벤트를 발생시켜 현재 시간을 증가하도록 설계했다.
     * 설계 도중, RTC 시간 이벤트를 다른 모듈과 공유했을 때, 다른 모듈에서 이벤트를 길게 잡고 있으면, NOW 모듈이 매 초마다 이벤트를 못 받는 경우가 발생할 수 있다.
@@ -56,7 +70,7 @@
 |3|~~BLE 통해 배터리 잔량 읽기~~|
 |4|~~BLE 통해 시간 동기 및 보드 시간 읽기~~|
 |5|BLE 통해 예약정보 10개 저장, 수정 및 앱을 통해 해당정보 확인|
-|6|예약기능 동작|
+|6|~~예약기능 동작~~|
 |7|OTA|
 |8|PC를 통해 모터 동작|
 |9|PC를 통해 베터리 잔량 읽기|
@@ -122,8 +136,31 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 ### 5.2 시간동기
 - Service UUID : 0x1805
 - Characteristic UUID : 0x2A2B
-- Type : int time[4]
-- Value : Unix Time(Epoch Time) UTC + 0
+  - Write
+    - Type : uint8_t time[4]
+    - Value : Unix Time(Epoch Time), UTC + 0
+  - Read
+    - Type : uint8_t time[4]
+    - Value : Board Time
+    - Format : Unix Time(Epoch Time), UTC + 0
+
+### 5.3 예약 스케쥴
+- Service UUID : 0000fa01-0000-1000-8000-00805f9b34fb
+  - 예약 List 보기
+    - Characteristic  UUID : 0000fa01-0000-1000-8000-00805f9b34fb
+    - Read
+      - Type : 
+```
+struct schedule{
+    uint8_t id;   //0xff, if no schedule
+    uint8_t day;  //0-6, 0 is Sunday
+    uint8_t hour; //0~23
+    uint8_t minute; //0~59
+}
+struct schedule schedules[10];
+```
+      - Value : 예약 list. 모든 시간은 UTC+0 기준.
+
 
 ##6. Trouble Shooting
 - nRF51 보드들 PC와 연결했을 때 USB 인식이 안됨

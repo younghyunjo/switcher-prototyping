@@ -31,7 +31,10 @@
 #include "motor_service.h"
 #include "now.h"
 #include "schedule.h"
+#include "schedule_service.h"
 #include "toggle_switch.h"
+
+#include "nrf_delay.h"
 
 #include "app_timer.h"
 
@@ -112,6 +115,7 @@ int main(void)
 	toggle_switch_init(TOGGLE_SWITCH_PIN, _switch_pushed);
 
 	schedule_init();
+	now_event_handler_register(schedule_timer_evt_handler);
 
 	bluetooth_init();
 
@@ -119,23 +123,38 @@ int main(void)
 	device_information_service_init(MANUFACTURER_NAME);
 	current_time_service_init(now, now_update);
 	motor_service_init(motor_move);
+	schedule_service_init();
 
 	// Start execution.
 	bluetooth_advertising_start();
-
 
 #if 0
 	{
 		struct schedule s;
 		s.id = 0xff;
-		s.day = 1;
-		s.hour = 12;
-		s.minute = 25;
-		s.on = 1;
-
+		s.day = 4;
+		s.hour = 0;
+		s.minute = 1;
 		schedule_add(&s);
 	}
 #endif
+
+	{
+		/*
+		nrf_delay_ms(2000);
+		schedule_del(3);
+		nrf_delay_ms(2000);
+		schedule_del(5);
+		nrf_delay_ms(2000);
+		schedule_del(9);
+		nrf_delay_ms(2000);
+
+		struct schedule s[SCHEDULE_MAX_NR];
+		schedule_list(s);
+		NRF_LOG_INFO("id:%d day:%d hour:%d minute:%d\r\n",
+				s[0].id, s[0].day, s[0].hour, s[0].minute);
+		*/
+	}
 
 	// Enter main loop.
 	for (;;)
