@@ -48,7 +48,6 @@ static void _current_time_service_current_time_gatt_set(void)
 	gatts_value.p_value = current_time;
 
 	uint32_t err_code = sd_ble_gatts_value_set(_conn_handle, current_time_handles.value_handle, &gatts_value);
-	NRF_LOG_INFO("err_code:%x\r\n", err_code);
 	APP_ERROR_CHECK(err_code);
 }
 
@@ -79,14 +78,16 @@ void current_time_service_evt_handler(ble_evt_t *p_ble_evt)
 			break;
 		case BLE_GATTS_EVT_RW_AUTHORIZE_REQUEST:
 			{
-				/*
-				ble_gatts_evt_read_t * p_evt_read = &p_ble_evt->evt.gatts_evt.params.write;
-				NRF_LOG_INFO("cccd:%d evt:%d\r\n", current_time_handles.cccd_handle, p_evt_read->handle);
-				*/
-				ble_gatts_evt_rw_authorize_request_t req = p_ble_evt->evt.gatts_evt.params.authorize_request;
+				ble_gatts_evt_rw_authorize_request_t req = 
+					p_ble_evt->evt.gatts_evt.params.authorize_request;
+
+				if (req.request.read.uuid.uuid != BLE_UUID_CURRENT_TIME_CHAR) {
+					return;
+				}
 				if (req.type != BLE_GATTS_AUTHORIZE_TYPE_READ) {
 					return;
 				}
+
 				_current_time_service_current_time_gatt_set();
 
 				ble_gatts_rw_authorize_reply_params_t auth_reply;
@@ -114,14 +115,13 @@ static uint32_t _gatt_char_init(void)
 	attr_md.read_perm.lv = 1;
 	attr_md.write_perm.sm = 1;
 	attr_md.write_perm.lv = 1;
-    attr_md.vloc       = BLE_GATTS_VLOC_STACK;
-    attr_md.rd_auth    = 1;
+    attr_md.vloc = BLE_GATTS_VLOC_STACK;
+    attr_md.rd_auth = 1;
 
 	ble_uuid_t ble_uuid;
     BLE_UUID_BLE_ASSIGN(ble_uuid, BLE_UUID_CURRENT_TIME_CHAR);
     ble_gatts_attr_t attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));
-
 
 	uint8_t initial_time[4] = {0};
     attr_char_value.p_uuid    = &ble_uuid;
