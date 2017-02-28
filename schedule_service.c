@@ -11,11 +11,13 @@
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 
-#define SCHEDULE_LIST_CHAR_UUID		0xfa02
 #define SCHEDULE_SERVICE_UUID		0xfa01
+#define SCHEDULE_LIST_CHAR_UUID		0xfa02
+#define SCHEDULE_UPDATE_CHAR_UUID	0xfa03
 
 static uint16_t _service_handle;
-static ble_gatts_char_handles_t _char_handle;
+static ble_gatts_char_handles_t _list_char_handle;
+static ble_gatts_char_handles_t _update_char_handle;
 static uint16_t _conn_handle = BLE_CONN_HANDLE_INVALID;
 
 static void _schedule_list_update(void)
@@ -30,12 +32,12 @@ static void _schedule_list_update(void)
 	gatts_value.offset  = 0;
 	gatts_value.p_value = (uint8_t*)schedules;
 
-	uint32_t err_code = sd_ble_gatts_value_set(_conn_handle, _char_handle.value_handle, &gatts_value);
+	uint32_t err_code = sd_ble_gatts_value_set(_conn_handle, _list_char_handle.value_handle, &gatts_value);
 	APP_ERROR_CHECK(err_code);
 
 }
 
-static uint32_t _gatt_char_init(void)
+static uint32_t _schedule_list_char_init(void)
 {
     ble_gatts_char_md_t char_md;
     memset(&char_md, 0, sizeof(char_md));
@@ -53,7 +55,6 @@ static uint32_t _gatt_char_init(void)
     ble_gatts_attr_t attr_char_value;
     memset(&attr_char_value, 0, sizeof(attr_char_value));
 
-	//uint8_t initial_value[1] = {0};
 	struct schedule schdule[SCHEDULE_MAX_NR];
 	memset(schdule, 0xff, sizeof(schdule));
     attr_char_value.p_uuid    = &ble_uuid;
@@ -63,7 +64,47 @@ static uint32_t _gatt_char_init(void)
     attr_char_value.max_len   = sizeof(struct schedule) * SCHEDULE_MAX_NR;
     attr_char_value.p_value   = (uint8_t*)schdule;
 
-    return sd_ble_gatts_characteristic_add(_service_handle, &char_md, &attr_char_value, &_char_handle);
+    return sd_ble_gatts_characteristic_add(_service_handle, &char_md, &attr_char_value, &_list_char_handle);
+}
+
+static uint32_t _schedule_update_char_init(void)
+{
+    ble_gatts_char_md_t char_md;
+    memset(&char_md, 0, sizeof(char_md));
+	char_md.char_props.write = 1;
+
+    ble_gatts_attr_md_t attr_md;
+    memset(&attr_md, 0, sizeof(attr_md));
+	attr_md.write_perm.sm = 1;
+	attr_md.write_perm.lv = 1;
+    attr_md.vloc = BLE_GATTS_VLOC_STACK;
+
+	ble_uuid_t ble_uuid;
+    BLE_UUID_BLE_ASSIGN(ble_uuid, SCHEDULE_UPDATE_CHAR_UUID);
+    ble_gatts_attr_t attr_char_value;
+    memset(&attr_char_value, 0, sizeof(attr_char_value));
+
+	struct schedule schdule;
+	memset(&schdule, 0xff, sizeof(schdule));
+    attr_char_value.p_uuid    = &ble_uuid;
+    attr_char_value.p_attr_md = &attr_md;
+    attr_char_value.init_len  = sizeof(struct schedule);
+    attr_char_value.init_offs = 0;
+    attr_char_value.max_len   = sizeof(struct schedule);
+    attr_char_value.p_value   = (uint8_t*)&schdule;
+
+    return sd_ble_gatts_characteristic_add(_service_handle, &char_md, &attr_char_value, 
+			&_update_char_handle);
+}
+
+static uint32_t _gatt_char_init(void)
+{
+	uint32_t err_code = _schedule_list_char_init();
+	if (err_code != NRF_SUCCESS) {
+		return err_code;
+	}
+
+	return _schedule_update_char_init();
 }
 
 static uint32_t _gatt_service_add(void)
@@ -112,17 +153,23 @@ void schedule_service_evt_handler(ble_evt_t *p_ble_evt)
 			}
 			break;
 		case BLE_GATTS_EVT_WRITE:
-			/*
 			{
 				ble_gatts_evt_write_t * p_evt_write = &p_ble_evt->evt.gatts_evt.params.write;
-				if (!_motor_move || _char_handle.value_handle != p_evt_write->handle ||
-						p_evt_write->len != sizeof(uint8_t) || p_evt_write->data[0] != MOTOR_MOVE_CMD)
+				if (p_evt_write->uuid.uuid != SCHEDULE_UPDATE_CHAR_UUID) {
 					return;
+				}
 
-				NRF_LOG_INFO("Move MOTOR(%x)\r\n", p_evt_write->data[0]);
-				_motor_move();
+				struct schedule *schedule = (struct schedule*)p_evt_write->data;
+				if (schedule->id != SCHEDULE_ID_UNKNOWN &&
+						schedule->day == 0xff &&
+						schedule->hour == 0xff &&
+						schedule->minute == 0xff) {
+					schedule_del(schedule->id);
+				}
+				else {
+					schedule_add(schedule);
+				}
 			}
-			*/
 			break;
 	}
 }
