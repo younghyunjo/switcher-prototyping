@@ -105,7 +105,7 @@ motor_service, current_time_service도 이와 비슷하게 설계하였다.
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgYmF0dGVyeV9sZXZlbF9nZXQoYXN5bmMpCgpNYWluLT4rQgAbBjoAGBIKABQHLT4rQURDKEhXKTogbnJmX2Rydl9hZGNfYnVmZmVyX2NvbnZlcnQKAB0HLS0-LQBMCAoAIyBzYW1wbGUKbm90ZSByaWdodCBvZiAAZQhBREMgU1RBUlQAPQotPi1NYWluOiAKABkbRklOSVNIAIEHCQCBBQogQURDIERvbmUgQ2FsbGJhY2sAgRgJIC0tPiAAVQYAggsGIExldmVsAB8K&s=napkin)
 * now.h : 시간 동기를 하며, 하드웨어자원을 이용하여 보드에 저장된 시간을 흐르게 한다.
   * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
-  * **모든 시간은 Unix Time(Epoch), UTC + 0 이다.**
+  * **모든 시간은 Unix Time(Epoch), UTC + 0 이다.**<br>
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgIFRpbWUgSW5jcmVhc2luZwoKTWFpbi0-K05vdzogbm93X2luaXQKCk5vdy0-K1JUQyhIVyk6ADEFciBTdGFydAoADgctLT4tADAFACcGLT4tTWFpbjoKCgpsb29wIEV2ZXJ5IGEgc2Vjb25kCiAgICAKICAgIAA2CD4AbAUAUgZFdmVudAAeBQByBQCBBgUAgRwHZSBDdXJyZW50AIE0BQBBBmVuZAoKCg&s=napkin)
 * motor.h : PWM을 이용하여 모터를 구동한다.
   * motor_move() 함수는 **Blocking**으로 동작한다.
@@ -177,6 +177,7 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
+
       - Update exist schedule
 ```
 struct schedule{
@@ -186,6 +187,7 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
+
       - Delete
 ```
 struct schedule{
@@ -298,5 +300,6 @@ make flash_softdevice
 
 ###C. 참고사이트
 칩 데이터시트 : https://lancaster-university.github.io/microbit-docs/resources/datasheets/nRF51822.pdf
+
 S130 Softdevice Specification : http://infocenter.nordicsemi.com/pdf/S130_SDS_v2.0.pdf
 
