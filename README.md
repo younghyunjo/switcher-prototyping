@@ -61,8 +61,6 @@
   9. OTA
   10. 저전력 방안 마련
 
-현재 8번까지 구현완료.
-
 이런 시행착오를 들은 전 펌웨어 개발자는 매우 즐거워했다는.....
 
 ##1. 진행사항
@@ -92,19 +90,34 @@
 
 * now.h : 시간 동기를 하며, 하드웨어자원을 이용하여 보드에 저장된 시간을 흐르게 한다.
   * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
-
+  * **모든 시간은 Unix Time(Epoch), UTC + 0 이다.**
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgIFRpbWUgSW5jcmVhc2luZwoKTWFpbi0-K05vdzogbm93X2luaXQKCk5vdy0-K1JUQyhIVyk6ADEFciBTdGFydAoADgctLT4tADAFACcGLT4tTWFpbjoKCgpsb29wIEV2ZXJ5IGEgc2Vjb25kCiAgICAKICAgIAA2CD4AbAUAUgZFdmVudAAeBQByBQCBBgUAgRwHZSBDdXJyZW50AIE0BQBBBmVuZAoKCg&s=napkin)
+
+* motor.h : PWM을 이용하여 모터를 구동한다.
+  * motor_move() 함수는 **Blocking**으로 동작한다.
+  * 따라서, 인터럽트 내에서 호출 시 ISR(Interrupt Service Routine)을 빠져나가는 시간이 길어, 우선순위가 낮은 인터럽트가 밀린다.
+  * 나은 성능을 위해서는 timer를 써서 Non-Blocking으로 동작하게 수정을 해야 한다.
+![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgTW90b3IgTW92ZQoKTWFpbiAtPiArABAFOiBtb3Rvcl9tABYGACMFLT4gR1BJTyhUUikgOiBncGlvIHNldAATC1BXTShIVykgOiBQV00gOgBUBSArOTAANgoAVQdXYWl0IHVudGlsAGEGIHN0b3AAKR8tAB8pAIEVGmNsZWFyAIFIBy0tPiAtTWFpbjoKCg&s=napkin)
+
 * toggle_switch.h : 타켓보드에 연결된 버튼의 눌러짐을 확인한다.
   * app_button library를 이용하여 구현했으며, 스위치가 눌러졌을 때 호출할 콜백을 등록하여, 이벤트를 받는다.
-* motor.h : PWM을 이용하여 모터를 구동한다.
-  * motor_move() 함수는 Blocking으로 동작한다.
-  * 나중에 timer를 써서 Non-Blocking으로 동작하게 수정하자.
-* io_uart.h : UART을 통해 들어온 문자를 받고, UART를 통해 문자열을 출력한다.
-* uart_queue.h : UART로 들어온 문자열을 Circular Queue에 저장한다.
-* uart_service.h : UART로 수신하는 명령어들을 관리하고, 해당 명령어를 수신하면 명령어 수행을 위한 콜백을 호출한다.
+
+* UART 관련 모듈
+  * uart_queue.h : UART로 들어온 명령어를 Circular Queue에 저장한다.
+    * UART를 통해서 받는 한개 명령어는 4Byte(Null 포함)으로 고정하고, 각 명령어를 Queuing하고 있다.
+![Alt text](https://docs.google.com/drawings/d/1LiOG0qBIr-ZDl0M1lI3EmqdE67v0CMmAC8M0H53JQA8/pub?w=339&h=552)
+
+  * io_uart.h : UART을 통해 들어온 문자를 받고, UART를 통해 문자열을 출력한다.
+    * UART(HW)에서 문자를 수신 이벤트가 발생하면, 해당 이벤트를 처리한다.
+    * UART(HW)로 문자열을 전송한다.
+![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=VGl0bGU6IFJlY2VpdmUgQ01EIGZyb20gUEMKClBDIC0-IFVBUlQoSFcpOiBDSEFSIHNlbmQKAAwIIC0-IGlvX3VhcnQAGAdyAEMGZAoKCmFsdAAtBmlzIE5PVCBORVdMSU5FIAogICAALgggLT4ANwlidWZmZXJpbmcAZAUKZWxzZQogIGFsdAATB2VkAH0FcyBhcmUgNABBBQA8DiB1YXJ0X3F1ZXVlIDogZW4ABQUAaQUARQcAJA0AbwtDbGVhcgBXDwAyBm5kCmVuZAoKCg&s=napkin)
+
+  * uart_service.h
+    * UART로 수신해야 할 명령어와 호출해야 할 함수 포인터를 가지고 있다.
+    * PC에서 해당 명령어를 수신하면 명령어 수행을 위한 콜백을 호출한다.
+![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgVUFSVAoKCk1haW4tPiArdWFydF9zZXJ2aWNlOiAAAgxfZG8KABIMLT4gK2lvX3VhcnQ6IAACB19jbWRfZ2V0CgASBwBJCXF1ZXVlOiBkZQAEBQBCBgAPBSAtLT4tAD4JY21kADIJLT4tAIB_DmNtZABzDi0-LU1haW46IGNhbGxiYWNrAAQFCgoKCgo&s=napkin)
 
 ##3. PC가 전송하는 UART 명령어 정의
-
 |명령어|설명|
 |---|---|
 |BAT|배터리 잔량을 출력한다.|
@@ -113,7 +126,6 @@
 |SWT|모터를 동작시킨다.|
 
 ##4. 배터리 잔량 계산
-
 ##### 배터리 최대, 최소 전압 정의
 * 최대전압 : 4.09V
 * 최소전압 : 3.41V
@@ -232,6 +244,7 @@ SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 * server : Store attribues. the servier must response the attribute request from client.
 
 ###B. ARMGCC 빌드 
+* toolchain 설정 : components/toolchain/gcc/Makefile.posix
 * Makefile 위치 : pca10028/s130/armgcc/Makefile
 * Build 명령어 
 ```
@@ -242,5 +255,6 @@ make flash_softdevice
 
 ###C. 참고사이트
 칩 데이터시트 : https://lancaster-university.github.io/microbit-docs/resources/datasheets/nRF51822.pdf
+
 S130 Softdevice Specification : http://infocenter.nordicsemi.com/pdf/S130_SDS_v2.0.pdf
 
