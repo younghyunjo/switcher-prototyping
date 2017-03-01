@@ -155,6 +155,7 @@ motor_service, current_time_service도 이와 비슷하게 설계하였다.
     - Characteristic  UUID : 0000fa01-0000-1000-8000-00805f9b34fb
     - Read
       - Type : 
+
 ```
 struct schedule{
     uint8_t id;   //0xff, if empty schedule
@@ -164,11 +165,13 @@ struct schedule{
 }
 struct schedule schedules[10];
 ```
+
       - Value : 예약 list.
   - 예약 기능 추가, 수정, 삭제
     - Characteristic UUID : 0000fa02-0000-1000-8000-00805f9b34fb
     - Write
       - Add new schedule
+
 ```
 struct schedule{
     uint8_t id;   //Always 0xff
@@ -179,6 +182,7 @@ struct schedule{
 ```
 
       - Update exist schedule
+
 ```
 struct schedule{
     uint8_t id;   //Updating schedule ID
@@ -189,6 +193,7 @@ struct schedule{
 ```
 
       - Delete
+
 ```
 struct schedule{
     uint8_t id;   //Deleting schedule ID
