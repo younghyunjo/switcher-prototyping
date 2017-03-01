@@ -3,18 +3,18 @@
 ##0. 시행착오
 ### 3/1
   * 문제점 : DK 보드 부팅안됨
-    * 발생 원인 
+    * 발생 원인
       * Bootloader를 Flash 중 보드가 반응이 없어 전원을 재인가하니깐, 보드가 PC와 연결이 안된다.
       * 타겟보드에서 Bootloader를 Loading하지 못해서 보드 부팅이 안되는 것으로 추측이 돤다.
       * Bootloader loading을 못하는 이유는 Flash Memory에 Bootloader가 비정쌍적으로 Flash 되었거나, 일부만 Flash 된 것으로 추측이 돤다.
-  * 증상 
+  * 증상
   	* DK보드를 PC에 연결하면, 장치관리자에 COM PORT로 인식이 안됨.
   	* 보드의 "BOOT/RESET" 버튼을 누른 후 부팅을 해도 BOOTLOADER 모드로 진입이 안됨.
   * 해결책 : 보드 교체 또는 하드웨어 디버거 장비로 Bootloader reflash.
 
 ### 2/28
   * 내용 : Flash Memory의 내용을 삭제가 안되는 버그는 SDK의 버그가 아니고, FILE_ID의 값을 0으로 사용할 경우 발생한다.
-    * Flash에 데이터를 저장할 때 FILE_ID와 RECORD_ID를 사용한다. 
+    * Flash에 데이터를 저장할 때 FILE_ID와 RECORD_ID를 사용한다.
     * FILE_ID를 0으로 사용하면 Data의 삭제 또는 수정이 안되는 경우가 발생한다.
     * FILE_ID를 0에서 0x5555로 변경하니 해당 기능 동작이 잘 된다.
 
@@ -22,7 +22,7 @@
 * ~~SDK 버그 발견~~
   * ~~버그 내용 : Flash Memory의 내용을 삭제해도, 삭제가 안되는 경우가 발생한다.~~
   * ~~버그 API : fds_record_delete()~~
-  * ~~배경~~ 
+  * ~~배경~~
     * ~~예약 스켸줄을 저정하기 위해선 칩의 Flash Memory를 사용해야 한다.~~
     * ~~Flash Memory를 편하게 사용하기 Flash Data Storage(fds) 라이브러리를 사용하였다.~~
   * 문제점
@@ -105,8 +105,7 @@ motor_service, current_time_service도 이와 비슷하게 설계하였다.
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgYmF0dGVyeV9sZXZlbF9nZXQoYXN5bmMpCgpNYWluLT4rQgAbBjoAGBIKABQHLT4rQURDKEhXKTogbnJmX2Rydl9hZGNfYnVmZmVyX2NvbnZlcnQKAB0HLS0-LQBMCAoAIyBzYW1wbGUKbm90ZSByaWdodCBvZiAAZQhBREMgU1RBUlQAPQotPi1NYWluOiAKABkbRklOSVNIAIEHCQCBBQogQURDIERvbmUgQ2FsbGJhY2sAgRgJIC0tPiAAVQYAggsGIExldmVsAB8K&s=napkin)
 * now.h : 시간 동기를 하며, 하드웨어자원을 이용하여 보드에 저장된 시간을 흐르게 한다.
   * now는 RTC 하드웨어를 이용하여, 매 초마다 이벤트를 받아서 시간을 증가시킨다.
-  * **모든 시간은 Unix Time(Epoch), UTC + 0 이다.**
-
+  * 모든 시간은 Unix Time(Epoch), UTC + 0 이다.
 ![Alt text](https://www.websequencediagrams.com/cgi-bin/cdraw?lz=dGl0bGUgIFRpbWUgSW5jcmVhc2luZwoKTWFpbi0-K05vdzogbm93X2luaXQKCk5vdy0-K1JUQyhIVyk6ADEFciBTdGFydAoADgctLT4tADAFACcGLT4tTWFpbjoKCgpsb29wIEV2ZXJ5IGEgc2Vjb25kCiAgICAKICAgIAA2CD4AbAUAUgZFdmVudAAeBQByBQCBBgUAgRwHZSBDdXJyZW50AIE0BQBBBmVuZAoKCg&s=napkin)
 * motor.h : PWM을 이용하여 모터를 구동한다.
   * motor_move() 함수는 **Blocking**으로 동작한다.
@@ -155,8 +154,7 @@ motor_service, current_time_service도 이와 비슷하게 설계하였다.
   - 예약 List 보기
     - Characteristic  UUID : 0000fa01-0000-1000-8000-00805f9b34fb
     - Read
-      - Type : 
-
+      - Type :
 ```
 struct schedule{
     uint8_t id;   //0xff, if empty schedule
@@ -166,13 +164,12 @@ struct schedule{
 }
 struct schedule schedules[10];
 ```
-
       - Value : 예약 list.
+
   - 예약 기능 추가, 수정, 삭제
     - Characteristic UUID : 0000fa02-0000-1000-8000-00805f9b34fb
     - Write
       - Add new schedule
-
 ```
 struct schedule{
     uint8_t id;   //Always 0xff
@@ -181,8 +178,6 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
-
-
       - Update exist schedule
 ```
 struct schedule{
@@ -192,8 +187,6 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
-
-
       - Delete
 ```
 struct schedule{
@@ -222,7 +215,7 @@ struct schedule{
 * MIN_ADC_VALUE = 3.41 / 2 * 1024 / 3.6
 * LEVEL = (ADC_VALUE - MIN_ADC_VALUE) / MAX_ADC_VALUE * 100
 
-##### 코드상 베터리 레벨 계산 
+##### 코드상 베터리 레벨 계산
 * MAX_ADC_VALUE = 4.09 / 2 \* **1000** / 3.6
 * MIN_ADC_VALUE = 3.41 / 2 \* **1000** / 3.6
 * LEVEL = (ADC_VALUE - MIN_ADC_VALUE) / MAX_ADC_VALUE * 100
@@ -294,10 +287,10 @@ SOFTDEVICE_HANDLER_INIT(&clock_lf_cfg, NULL);
 * client : Requesting read/write attributes to the GATT server.
 * server : Store attribues. the servier must response the attribute request from client.
 
-###B. ARMGCC 빌드 
+###B. ARMGCC 빌드
 * toolchain 설정 : components/toolchain/gcc/Makefile.posix
 * Makefile 위치 : pca10028/s130/armgcc/Makefile
-* Build 명령어 
+* Build 명령어
 ```
 make
 make flash
@@ -308,4 +301,3 @@ make flash_softdevice
 칩 데이터시트 : https://lancaster-university.github.io/microbit-docs/resources/datasheets/nRF51822.pdf
 
 S130 Softdevice Specification : http://infocenter.nordicsemi.com/pdf/S130_SDS_v2.0.pdf
-
