@@ -5,6 +5,7 @@
   * 문제점 : Ubuntu에 Github markdown format을 지원하는 에디터가 없음
     * 적절한 markdown editor가 없어 개인 PC에서 잘 보이던 Readme.md파일이 github에 올라가면 깨져보인다.
   * 해결책 : https://jbt.github.io/markdown-editor에서 편집
+
 ### 3/1
   * 문제점 : DK 보드 부팅안됨
     * 발생 원인
