@@ -164,12 +164,12 @@ struct schedule{
 }
 struct schedule schedules[10];
 ```
-      - Value : 예약 list.
+-   - Value : 예약 list.
 
   - 예약 기능 추가, 수정, 삭제
     - Characteristic UUID : 0000fa02-0000-1000-8000-00805f9b34fb
     - Write
-      - Add new schedule
+   - - 추가
 ```
 struct schedule{
     uint8_t id;   //Always 0xff
@@ -178,7 +178,7 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
-      - Update exist schedule
+   -  - 수정
 ```
 struct schedule{
     uint8_t id;   //Updating schedule ID
@@ -187,7 +187,7 @@ struct schedule{
     uint8_t minute; //0~59
 };
 ```
-      - Delete
+   -  - 삭제
 ```
 struct schedule{
     uint8_t id;   //Deleting schedule ID
