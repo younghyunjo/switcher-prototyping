@@ -4,7 +4,7 @@
 ### 3/2
   * 문제점 : Ubuntu에 Github markdown format을 지원하는 에디터가 없음
     * 적절한 markdown editor가 없어 개인 PC에서 잘 보이던 Readme.md파일이 github에 올라가면 깨져보인다.
-  * 해결책 : https://jbt.github.io/markdown-editor에서 편집
+  * 해결책 : https://jbt.github.io/markdown-editor 에서 편집
 
 ### 3/1
   * 문제점 : DK 보드 부팅안됨
@@ -208,7 +208,39 @@ struct schedule{
 |SCH|예약정보를 출력한다.|
 |SWT|모터를 동작시킨다.|
 
-## 6. 배터리 잔량 계산
+## 6. 저전력 방안 마련
+##### 저전력을 위한 기본 전략은 아래와 같다.
+  1. 사용하지 않는 하드웨어 Block의 전원은 끈다.
+  2. DMA, PPI 등을 적극 활용하여 CPU의 사용을 줄인다.
+     * CPU가 소모전류가 높은 편이라, 가급적 CPU의 사용을 줄이면 저전력에 유리하다.
+  3. CPU를 사용할 땐, 최소한의 일만 하도, IDLE 모드에 들어가도록 한다.
+  4. 낮은 주파수의 CLOCK을 사용하여 소모 전류를 줄인다.
+     * 높은 CLOCK을 사용하면, 프로세싱 속도는 빠르지만, 소모전류 측면에서는 불리하다.
+  5. BLE의 Advertising 주기를 최대한 길게 한다.
+     * Advertising 주기가 길면, "RADIO" 하드웨어 Block 사용을 적게하기 때문에 저전력에 유리하다. 
+     * **하지만 주기가 길면, BT 연결에 시간이 오래 걸린다.**   
+  6. BLE 연결 후 전송하는 데이터의 횟수 및 크기를 최소화 한다.
+     * 데이터을 적게 전송할 수록 "RADIO" 하드웨어 Block의 사용을 줄일 수 있기 때문에 저전력에 유리하다. 
+
+##### 저전력 구현을 위한 구체적인 방안은 아래와 같다.
+* 기본적으로 System Off 상태로 두고, RTC 이벤트, GPIO Event가 발생하면 System On모드로 들어간 후, 다시 System Off모드로 빠진다.
+  * RTC Event는 시간 동기, BLE Advertising 주기에 맞쳐 발생하며, GPIO Event는 스위치가 눌러지면 발생한다.
+* 하드웨어 Block 중 GPIO, BLE, RTC를 제외한 다른 Peripherial(ex UART) 모두 끈다.
+* 보드의 시간을 흐르게 하기 위한 RTC Timer 이벤트의 간격(Interval)을 1초에서 60초로 한다.
+  * 예약 스케쥴의 최소 간격이 60초이기 때문에, 보드의 시간도 60초 단위로 증가를 시킨다.
+* BLE의 Advertising, Connection 주기를 RTC Timer 이벤트의 약수로 한다.
+  * 해당 주기를 RTC Timer 이벤트의 약수로 하면, 시간 동기을 위해 CPU가 깨어날 때, BLE 관련 일을 같이 할 수 있기 때문에, CPU가 깨어나는 횟수를 60초에 1번씩 줄일 수 있다.
+* BAT 서비스는 Notification 모드로 사용하여, 배터리 잔량이 10% 이하일 때만 해당 정보를 Central로 전송한다.
+  * BLE로 전송하는 데이터 량을 줄일 수 있다.
+
+
+##### 기타
+* Low Volaage 모드 사용도 검토는 했으나, 배터리의 전압 공급이 안정적이지 않을 것으로 판단되어 방안에 포함시키진 않았다. 
+* nRF51 칩의 BLE STACK은 SOFT DEVICE란 이름의 펌웨어로 구현되었다. 따라서 BLE 사용 시 소모 전류를 줄이기 위해서 하드웨어 Block의 적극적인 활용(Ex DMA, PPI)을 검토하였지만, 이 부분은 SOFT DEVICE에 기 구현되어 있으며, 튜닝할 수 있은 요소는 없다. 따라서, BLE 관련 저전력 방안은 BLE 스펙의 Advertising, Connetion Interval 조정, 데이터 사이즈 최소 등 제한적인 방법밖에 제시할 수 없어 아쉬움이 남는다.
+* nRF51 저전력 방법 참고 자료 : https://devzone.nordicsemi.com/question/5186/how-to-minimize-current-consumption-for-ble-application-on-nrf51822/
+
+
+## 7. 배터리 잔량 계산
 ##### 배터리 최대, 최소 전압 정의
 * 최대전압 : 4.09V
 * 최소전압 : 3.41V
@@ -228,7 +260,7 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 이미 x1000을 한 값을 받기 때문에, 계산상에 x1024한 값 대신에 x1000한 값을 그대로 쓰도록 구현하였다.
 
 
-## 7. Trouble Shooting
+## 8. Trouble Shooting
 - nRF51 보드들 PC와 연결했을 때 USB 인식이 안됨
     - 원인 : 부트로더를 잘못 구워서 인식이 안됨
     - 해결 : 부트로더 Reflashing
