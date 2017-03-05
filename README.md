@@ -239,8 +239,36 @@ struct schedule{
 * nRF51 칩의 BLE STACK은 SOFT DEVICE란 이름의 펌웨어로 구현되었다. 따라서 BLE 사용 시 소모 전류를 줄이기 위해서 하드웨어 Block의 적극적인 활용(Ex DMA, PPI)을 검토하였지만, 이 부분은 SOFT DEVICE에 기 구현되어 있으며, 튜닝할 수 있은 요소는 없다. 따라서, BLE 관련 저전력 방안은 BLE 스펙의 Advertising, Connetion Interval 조정, 데이터 사이즈 최소 등 제한적인 방법밖에 제시할 수 없어 아쉬움이 남는다.
 * nRF51 저전력 방법 참고 자료 : https://devzone.nordicsemi.com/question/5186/how-to-minimize-current-consumption-for-ble-application-on-nrf51822/
 
+## 7. DFU 기능 구현 과정
+1. Private Key 생성
+  - 펌웨어 업데이트 전 유효한 펌웨어인지 검증하기 위해서 private key가 필요하다.
+```
+Generate key : 
+$ nrfutil keys generate private.pem
+Display key :
+$ nrfutil keys display -key pk -format code private.pem
+```
+2. Bootloader 빌드 방법
+  - Bootloader source directory : $NRF_SDK/examples/dfu/bootloader_secure/
+  - dfu_private_key.c 파일을 열어 1에서 생성한 private key의 값을 넣는다.
+  - 아래 명령어로 빌드
+```
+$ cd $NRF_SDK/examples/dfu/bootloader_secure/pca10028/armgcc
+$ make
+```
+3. 배포가능한 펌웨어 생성
+```
+$ nrfutil pkg generate --hw-version 51 --sd-req $REQ_SD_VER --application-version $VERSION_NO --application $APP_HEX_FILE --key-file private.pem $APP_ZIP_FILE
+```
 
-## 7. 배터리 잔량 계산
+4. Bootloader의 DFU 서비스 추가
+nRF51 SDK는 DFU 서비스를 라이브러리로 제공하고 있다.
+- 소스 파일 : components/ble/ble_services/ble_dfu
+- 사용방법
+  1. Application 시작 시 ble_dfu_init()를 호출하여 DFU Service를 초기화한다.
+  2. Application에 ble event를 받으면 ble_dfu_on_ble_evt()를 호출하여, DFU Service가 이벤트를 받을 수 있도록 한다.
+
+## 8. 배터리 잔량 계산
 ##### 배터리 최대, 최소 전압 정의
 * 최대전압 : 4.09V
 * 최소전압 : 3.41V
@@ -260,7 +288,7 @@ battery.h에 배터리 래벨의 최대, 최소 전압을 받도록 인터페이
 이미 x1000을 한 값을 받기 때문에, 계산상에 x1024한 값 대신에 x1000한 값을 그대로 쓰도록 구현하였다.
 
 
-## 8. Trouble Shooting
+## 9. Trouble Shooting
 - nRF51 보드들 PC와 연결했을 때 USB 인식이 안됨
     - 원인 : 부트로더를 잘못 구워서 인식이 안됨
     - 해결 : 부트로더 Reflashing
