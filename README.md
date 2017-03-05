@@ -81,7 +81,7 @@
 
 ## 1. 진행사항
 
-### 10/12 완료
+### 11/12 완료
 
 |번호|요구사항|
 |---|---|
@@ -96,7 +96,7 @@
 |9|~~PC를 통해 베터리 잔량 읽기~~|
 |10|~~PC를 통해 보드의 실제 시간 확인~~|
 |11|~~PC를 통해 예약정보 확인~~|
-|12|저전력 방안 마련|
+|12|~~저전력 방안 마련~~|
 
 ## 2. Architecture
 ![Alt text](https://docs.google.com/drawings/d/1HWsrJ0OCyh-hFPSqX2w1N-bl5Fi8vEi3wBuQTSjsZSE/pub?w=946&h=194)
