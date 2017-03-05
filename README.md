@@ -240,7 +240,7 @@ struct schedule{
 * nRF51 저전력 방법 참고 자료 : https://devzone.nordicsemi.com/question/5186/how-to-minimize-current-consumption-for-ble-application-on-nrf51822/
 
 ## 7. DFU 기능 구현 과정
-1. Private Key 생성
+- Private Key 생성
   - 펌웨어 업데이트 전 유효한 펌웨어인지 검증하기 위해서 private key가 필요하다.
 ```
 Generate key : 
@@ -248,7 +248,7 @@ $ nrfutil keys generate private.pem
 Display key :
 $ nrfutil keys display -key pk -format code private.pem
 ```
-2. Bootloader 빌드 방법
+- Bootloader 빌드 방법
   - Bootloader source directory : $NRF_SDK/examples/dfu/bootloader_secure/
   - dfu_private_key.c 파일을 열어 1에서 생성한 private key의 값을 넣는다.
   - 아래 명령어로 빌드
@@ -256,17 +256,17 @@ $ nrfutil keys display -key pk -format code private.pem
 $ cd $NRF_SDK/examples/dfu/bootloader_secure/pca10028/armgcc
 $ make
 ```
-3. 배포가능한 펌웨어 생성
+- 배포가능한 펌웨어 생성
 ```
 $ nrfutil pkg generate --hw-version 51 --sd-req $REQ_SD_VER --application-version $VERSION_NO --application $APP_HEX_FILE --key-file private.pem $APP_ZIP_FILE
 ```
 
-4. Bootloader의 DFU 서비스 추가
+- Bootloader의 DFU 서비스 추가
 nRF51 SDK는 DFU 서비스를 라이브러리로 제공하고 있다.
-- 소스 파일 : components/ble/ble_services/ble_dfu
-- 사용방법
-  1. Application 시작 시 ble_dfu_init()를 호출하여 DFU Service를 초기화한다.
-  2. Application에 ble event를 받으면 ble_dfu_on_ble_evt()를 호출하여, DFU Service가 이벤트를 받을 수 있도록 한다.
+  - 소스 파일 : components/ble/ble_services/ble_dfu
+  - 사용방법
+    1. Application 시작 시 ble_dfu_init()를 호출하여 DFU Service를 초기화한다.
+    2. Application에 ble event를 받으면 ble_dfu_on_ble_evt()를 호출하여, DFU Service가 이벤트를 받을 수 있도록 한다.
 
 ## 8. 배터리 잔량 계산
 ##### 배터리 최대, 최소 전압 정의
